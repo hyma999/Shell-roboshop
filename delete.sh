@@ -1,10 +1,11 @@
 #!/bin/bash
 # Usage: ./cleanup.sh <sg-0b5f214278688d1f2> <Z10031052IOPWYQ5HA3UD> <hymaaws.online> <ami-0220d79f3f480ecf5>
 
-INSTANCE_ID=$1
+
 ZONE_ID=$2
 RECORD_NAME=$3
-SG_ID=$4
+SG_ID=$1
+INSTANCE_ID=$4
 
 # 1. Terminate Instance
 echo "Terminating instance $INSTANCE_ID..."
