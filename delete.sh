@@ -1,25 +1,28 @@
 #!/bin/bash
-# Usage: ./cleanup.sh <sg-0b5f214278688d1f2> <Z10031052IOPWYQ5HA3UD> <hymaaws.online> <ami-0220d79f3f480ecf5>
 
+# --- Configuration ---
+SG_ID="sg-0b5f214278688d1f2"   # ID of the security group to delete
+AMI_ID="ami-0220d79f3f480ecf5" # ID of the AMI to deregister
+# ZONE_ID="Z10031052IOPWYQ5HA3UD"    # Not directly used in SG/AMI deletion
+# DOMAIN_NAME="hymaaws.online"    # Not directly used in SG/AMI deletion
 
-ZONE_ID=$2
-RECORD_NAME=$3
-SG_ID=$1
-INSTANCE_ID=$4
-
-# 1. Terminate Instance
-echo "Terminating instance $INSTANCE_ID..."
-aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-
-# 2. Delete Route 53 Record
-echo "Deleting R53 record $RECORD_NAME in $ZONE_ID..."
-DNS_JSON=$(aws route53 list-resource-record-sets --hosted-zone-id $ZONE_ID \
-  --query "ResourceRecordSets[?Name == '$RECORD_NAME.' && Type == 'A']" | jq -c '.[0]')
-
-if [ "$DNS_JSON" != "null" ]; then
-  aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID \
-    --change-batch '{"Changes": [{"Action": "DELETE", "ResourceRecordSet": '"$DNS_JSON"'}]}'
-  echo "Record $RECORD_NAME deleted."
+# --- Delete Security Group ---
+echo "Deleting Security Group: $SG_ID"
+aws ec2 delete-security-group --group-id $SG_ID
+if [ $? -eq 0 ]; then
+    echo "Successfully deleted Security Group: $SG_ID"
 else
-  echo "Record $RECORD_NAME not found."
+    echo "Failed to delete Security Group: $SG_ID"
 fi
+
+# --- Deregister AMI ---
+echo "Deregistering AMI: $AMI_ID"
+aws ec2 deregister-image --image-id $AMI_ID
+if [ $? -eq 0 ]; then
+    echo "Successfully deregistered AMI: $AMI_ID"
+else
+    echo "Failed to deregister AMI: $AMI_ID"
+fi
+
+# Note: To delete associated snapshots, additional steps are required [2].
+
