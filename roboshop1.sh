@@ -32,7 +32,7 @@ jq '{
 
 echo "Deleting DNS record..."
 aws route53 change-resource-record-sets \
-  --hosted-zone-id $ZONE_ID \
+  --hosted-zone-id $hymaaws.online \
   --change-batch file://delete-record.json
 
 sleep 10
